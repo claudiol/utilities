@@ -1,5 +1,6 @@
 import sys
 import os
+import re
 import getopt
 from kubernetes import config, dynamic, client
 from kubernetes.client import api_client
@@ -70,6 +71,11 @@ def get_pod_logs(pod_name, namespace):
         name=pod_name, namespace=namespace)
     print(api_response)
 
+def search_log_output(log, search):
+    for term in search:
+        if not re.search(term, log):
+            return False
+    return True
 
 def main():
 
@@ -92,6 +98,18 @@ def main():
         pod_instance = op.Pods(namespace)
         response = pod_instance.getPodLogs(podname, namespace)
         print (response)
+        search_terms = ["handleTemperature", "handleVibration", "Anomaly"]
+        
+        if not search_log_output(response, search_terms):
+           print ("Search items [" + search_terms + "] NOT FOUND")
+        else:
+           print ("Search items [", search_terms , "] FOUND")
+
+        for term in search_terms:
+          if term in response:
+             print("Term: " + term + " Found")
+          else:
+             print("Term: " + term + " Not Found")
     except getopt.error as err:
         # output error, and return with an error code
         print (str(err))
